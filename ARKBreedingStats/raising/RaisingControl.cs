@@ -501,18 +501,44 @@ namespace ARKBreedingStats.raising
         {
             if (iteEdit != null)
             {
+                DateTime incubationFinishDate;
+                TimeSpan incubationDurationLeft;
+
+                if (!iteEdit.timerIsRunning)
+                {
+                    incubationFinishDate = DateTime.Now.Add(iteEdit.incubationDuration);
+                    incubationDurationLeft = iteEdit.incubationDuration;
+                }
+                else
+                {
+                    incubationFinishDate = iteEdit.incubationEnd;
+                    incubationDurationLeft = iteEdit.incubationEnd.Subtract(DateTime.Now);
+                }
+
                 lEditTimerName.Text = "Incubation" + (iteEdit.mother != null ? " (" + (iteEdit.mother.Species?.name ?? "unknown") + ")" : string.Empty);
-                dateTimePickerEditTimerFinish.Value = iteEdit.incubationEnd;
-                TimeSpan ts = iteEdit.incubationEnd.Subtract(DateTime.Now);
-                dhmsInputTimerEditTimer.Timespan = (ts.TotalSeconds > 0 ? ts : TimeSpan.Zero);
+                dateTimePickerEditTimerFinish.Value = incubationFinishDate;
+                dhmsInputTimerEditTimer.Timespan = (incubationDurationLeft.TotalSeconds > 0 ? incubationDurationLeft : TimeSpan.Zero);
 
             }
-            else if (creatureMaturationEdit != null && creatureMaturationEdit.growingUntil.HasValue)
+            else if (creatureMaturationEdit?.growingUntil != null)
             {
+                DateTime maturationFinishDate;
+                TimeSpan maturationDurationLeft;
+
+                if (creatureMaturationEdit.growingPaused)
+                {
+                    maturationFinishDate = DateTime.Now.Add(creatureMaturationEdit.growingLeft);
+                    maturationDurationLeft = creatureMaturationEdit.growingLeft;
+                }
+                else
+                {
+                    maturationFinishDate = creatureMaturationEdit.growingUntil.Value;
+                    maturationDurationLeft = creatureMaturationEdit.growingUntil.Value.Subtract(DateTime.Now);
+                }
+
                 lEditTimerName.Text = creatureMaturationEdit.name + " (" + (creatureMaturationEdit.Species?.name ?? "unknown") + ")";
-                dateTimePickerEditTimerFinish.Value = creatureMaturationEdit.growingUntil.Value;
-                TimeSpan ts = creatureMaturationEdit.growingUntil.Value.Subtract(DateTime.Now);
-                dhmsInputTimerEditTimer.Timespan = (ts.TotalSeconds > 0 ? ts : TimeSpan.Zero);
+                dateTimePickerEditTimerFinish.Value = maturationFinishDate;
+                dhmsInputTimerEditTimer.Timespan = (maturationDurationLeft.TotalSeconds > 0 ? maturationDurationLeft : TimeSpan.Zero);
             }
             else
             {
@@ -521,6 +547,7 @@ namespace ARKBreedingStats.raising
                 dhmsInputTimerEditTimer.Timespan = TimeSpan.Zero;
             }
         }
+
 
         private void dhmsInputTimerEditTimer_TextChanged(object sender, EventArgs e)
         {
